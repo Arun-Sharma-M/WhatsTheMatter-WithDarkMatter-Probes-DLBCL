@@ -23,6 +23,7 @@ The repository includes scripts used at different stages of the analysis. Some s
 | `7.IntaRNA_minimal_energy.R` | Visualises IntaRNA minimal-energy profiles and intermolecular energy values for the predicted `lnc-SPARC-2:3`--SPARC interaction. It generates line plots of minimal energy and a tile plot of intermolecular index-pair energies from IntaRNA output files. |
 | `8.Cohort_Stromal_Adjusted_Associations.R` | Analyses 27 candidate lncRNA--mRNA pairs using cohort-specific Spearman correlations, rank-based regression adjusted for cohort and stromal score, cohort-interaction models, integrated result tables, and faceted scatterplots. |
 | `8.Spearmann_Correlation_NvsT.R` | Performs a broader lncRNA--mRNA correlation workflow, including groupwise correlations, selected normal subsets, tumour correlations, stromal/cohort-adjusted associations, differential-correlation and interaction permutation tests, multiple-testing correction, and CSV summaries. The script specifies 9,999 permutations. |
+| `9.Overall_work_Flow.txt` | Provides the overall DLBCL analysis workflow, from RNA-seq processing and differential-expression analysis through expression profiling, mutation and survival analyses, interaction prediction, and experimental validation. |
 
 ## Analysis overview
 
@@ -97,6 +98,30 @@ The correlation scripts analyse selected lncRNA--mRNA combinations. The candidat
 The cohort/stromal-adjusted script calculates SRA- and TCGA-specific Spearman correlations, fits rank-based regression models adjusted for cohort and stromal score, tests cohort-by-expression interactions, integrates results, and creates faceted plots. `8.Spearmann_Correlation_NvsT.R` contains additional groupwise and permutation-based analyses, including differential-correlation tests and BH multiple-testing correction.
 
 A statistically significant correlation is an association, not proof of direct molecular interaction or causal regulation. The SRA tumour group is smaller than the TCGA tumour group in the sample layout specified by the scripts; consider this difference when interpreting precision and cross-cohort comparisons.
+
+### 8. Overall analysis workflow
+
+The overall workflow and its major analysis steps are documented in `9.Overall_work_Flow.txt`:
+
+- RNA-seq datasets comprising 8 normal and 10 tumour samples from the Sequence Read Archive (SRA) and 48 tumour samples from The Cancer Genome Atlas (TCGA) were analysed.
+- SRA sequencing reads were quality-checked using FastQC and aligned to the human reference genome using HISAT2, followed by SAMtools processing to generate sorted BAM files.
+- TCGA BAM files were obtained from the TCGA repository. BEDTools multiBamcov was used to quantify reads overlapping annotated genomic features and generate count matrices.
+- Differential expression analysis was performed using DESeq2 with raw integer read counts and the design formula with respect to Age and SampleType, where age was included as a covariate and SampleType (Normal or Tumour) represented the primary variable of interest.
+- Analyses were conducted using the combined SRA and TCGA datasets and independently within each dataset to identify differentially expressed transcripts and examine cohort-specific expression patterns.
+- The analyses generated p-values, adjusted p-values (padj), and mean log₂ fold-change (L2FC) values.
+- Separately, zero read counts were replaced with 0.1 before TPM normalization to facilitate expression-level comparisons.
+- To identify transcripts exhibiting consistent deregulation across individual tumour samples, the TPM value of each tumour sample was compared with the geometric mean TPM expression of the normal samples within the corresponding dataset.
+- Fold changes were calculated by dividing individual tumour TPM values by the geometric mean TPM of the normal samples, followed by log₂ transformation to obtain sample-specific log₂ fold changes.
+- This approach facilitated the identification of transcripts showing consistent expression changes across individual tumour samples.
+- Principal component analysis (PCA) was performed to visualize global expression patterns and assess sample-level relationships.
+- Volcano plots were generated to examine the overall distribution of differentially expressed transcripts and identify the predominant direction of deregulation.
+- Heatmaps were used to visualize the expression patterns of the shortlisted transcripts, while boxplots illustrated their expression distributions across normal and tumour samples.
+- Mutation analysis of the shortlisted genes was performed to investigate the potential contribution of genomic alterations to the observed expression patterns in diffuse large B-cell lymphoma (DLBCL).
+- Survival analysis was conducted to assess the potential prognostic significance of the shortlisted lncRNAs.
+- To investigate potential functional relationships, interaction networks were constructed using the shortlisted transcripts and their associated genes.
+- The lncRNA–mRNA interactions were predicted using IntaRNA, while potential lncRNA–protein interactions were investigated by screening a curated list of 723 DLBCL-associated proteins obtained from the Morin Lab Leukemia/Lymphoma Molecular Profiling Project (LLMPP) repository.
+- Selected shortlisted lncRNAs were experimentally validated using semi-quantitative PCR, and the identities of the amplified products were confirmed by sequencing.
+- Finally, the computational and experimental findings were integrated to formulate hypotheses regarding the potential mechanisms of action of the shortlisted lncRNAs, which were illustrated schematically.
 
 ## Input files and directory setup
 
