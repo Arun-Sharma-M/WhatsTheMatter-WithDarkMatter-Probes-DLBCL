@@ -120,6 +120,8 @@ from the Genomic Data Commons, so FASTQ retrieval and HISAT2 alignment
 are not repeated for those samples. The RNA-seq pipeline file lists the
 commands and reference files used.
 
+Corresponding file: 1.RNA_Seq_pipeline.txt
+
 ### 2. Differential expression and expression processing
 
 The DESeq2 and expression-workflow scripts use read-count matrices and
@@ -133,6 +135,10 @@ Differential-expression models and filtering thresholds should be
 interpreted according to the actual settings in the corresponding script
 and analysis.
 
+Corresponding files:
+* 2.DESeq2_DLBCL_SRA_TCGA_merge_lncRNA.r
+* 3.SRA_TCGA_lncRNA_DLBCL2_Workflow.R
+
 ### 3. Candidate-set overlap and expression plots
 
 The Venn-diagram script compares selected lncRNA and mRNA sets from
@@ -140,6 +146,10 @@ differential-expression outputs. The SlimRNA plotting script loads
 expression tables and metadata to visualise selected genes. These
 scripts depend on intermediate CSV files and gene lists produced or
 supplied elsewhere in the workflow.
+
+Corresponding files:
+* 4.Venndiagram_upr.r
+* 5.TCGA_DLBCL2_SlimRNA_boxplot.r
 
 ### 4. Survival analysis
 
