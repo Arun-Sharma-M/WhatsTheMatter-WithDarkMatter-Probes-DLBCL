@@ -1,0 +1,247 @@
+    											 WhatsTheMatter-WithDarkMatter-Probes-DLBCL
+
+RNA-seq Analysis Pipeline for DLBCL
+
+Overview
+
+This pipeline processes publicly available RNA-sequencing data from diffuse large B-cell lymphoma (DLBCL) for transcriptomic analysis. It includes FASTQ file retrieval, sequencing quality assessment, alignment to the human reference genome (hg38), BAM file processing, alignment statistics, and read-count generation for long non-coding RNAs (lncRNAs) and protein-coding genes.
+
+The resulting read-count matrices can be used for downstream differential gene expression analysis.
+
+Workflow
+
+1. Download sequencing data from the NCBI Sequence Read Archive (SRA).
+2. Assess sequencing quality using FastQC.
+3. Align paired-end reads to the hg38 reference genome using HISAT2.
+4. Convert SAM files to BAM format and sort the alignments.
+5. Index the sorted BAM files and evaluate alignment statistics.
+6. Generate lncRNA and mRNA read-count matrices using BEDTools multiBamCov.
+
+Software requirements
+
+* SRA Toolkit (fastq-dump)
+* FastQC
+* HISAT2
+* SAMtools
+* BEDTools
+
+Reference files
+
+* HISAT2 index: ../hg38_hisat2_indexed
+* lncRNA annotation: lncipedia_5_2_hg38.bed
+* mRNA annotation: hg38_NCBIRefseq.bed
+
+Ensure that all software is installed and the reference files are accessible before running the pipeline.
+
+⸻
+
+1. Download FASTQ Files
+
+The first step retrieves sequencing reads from the NCBI Sequence Read Archive using their SRA accession numbers. The --split-files option separates paired-end reads into forward (_1.fastq) and reverse (_2.fastq) files.
+
+fastq-dump --split-files SRR5273609
+fastq-dump --split-files SRR5273608
+fastq-dump --split-files SRR5273607
+fastq-dump --split-files SRR5273606
+fastq-dump --split-files SRR5273605
+fastq-dump --split-files SRR5273604
+fastq-dump --split-files SRR5273603
+fastq-dump --split-files SRR5273602
+fastq-dump --split-files SRR5273601
+fastq-dump --split-files SRR5273600
+fastq-dump --split-files SRR5273599
+
+
+Expected output: Paired FASTQ files for each run, provided that the corresponding SRA records contain paired-end sequencing data.
+
+⸻
+
+2. Sequencing Quality Assessment
+
+FastQC is used to evaluate sequencing quality before alignment. The reports provide information on per-base sequence quality, GC content, sequence duplication, adapter contamination, and other potential quality issues.
+
+The following commands assess all downloaded FASTQ files:
+
+fastqc SRR5273609_1.fastq SRR5273609_2.fastq
+fastqc SRR5273608_1.fastq SRR5273608_2.fastq
+fastqc SRR5273607_1.fastq SRR5273607_2.fastq
+fastqc SRR5273606_1.fastq SRR5273606_2.fastq
+fastqc SRR5273605_1.fastq SRR5273605_2.fastq
+fastqc SRR5273604_1.fastq SRR5273604_2.fastq
+fastqc SRR5273603_1.fastq SRR5273603_2.fastq
+fastqc SRR5273602_1.fastq SRR5273602_2.fastq
+fastqc SRR5273601_1.fastq SRR5273601_2.fastq
+fastqc SRR5273600_1.fastq SRR5273600_2.fastq
+fastqc SRR5273599_1.fastq SRR5273599_2.fastq
+
+
+Expected output: HTML quality reports and corresponding ZIP archives for the FASTQ files.
+
+Review these reports before proceeding to alignment. FastQC identifies potential quality issues but does not itself trim adapters or remove low-quality bases.
+
+⸻
+
+3. Alignment to the Human Reference Genome
+
+HISAT2 is used to align paired-end sequencing reads to the human reference genome (hg38). The -x parameter specifies the pre-built HISAT2 index, while -1 and -2 specify the forward and reverse FASTQ files.
+
+The -5 and -3 options specify the numbers of bases to trim from the 5′ and 3′ ends, respectively. The -p 3 option uses three processing threads.
+
+hisat2 -x ../hg38_hisat2_indexed -1 SRR5273599_1.fastq -2 SRR5273599_2.fastq -S SRR5273599.sam -5 13 -3 20 -p 3
+hisat2 -x ../hg38_hisat2_indexed -1 SRR5273600_1.fastq -2 SRR5273600_2.fastq -S SRR5273600.sam -5 13 -3 20 -p 3
+hisat2 -x ../hg38_hisat2_indexed -1 SRR5273601_1.fastq -2 SRR5273601_2.fastq -S SRR5273601.sam -5 13 -3 40 -p 3
+hisat2 -x ../hg38_hisat2_indexed -1 SRR5273602_1.fastq -2 SRR5273602_2.fastq -S SRR5273602.sam -5 13 -3 20 -p 3
+hisat2 -x ../hg38_hisat2_indexed -1 SRR5273603_1.fastq -2 SRR5273603_2.fastq -S SRR5273603.sam -5 13 -3 20 -p 3
+hisat2 -x ../hg38_hisat2_indexed -1 SRR5273604_1.fastq -2 SRR5273604_2.fastq -S SRR5273604.sam -5 13 -3 20 -p 3
+hisat2 -x ../hg38_hisat2_indexed -1 SRR5273605_1.fastq -2 SRR5273605_2.fastq -S SRR5273605.sam -5 13 -3 40 -p 3
+hisat2 -x ../hg38_hisat2_indexed -1 SRR5273606_1.fastq -2 SRR5273606_2.fastq -S SRR5273606.sam -5 13 -3 35 -p 3
+hisat2 -x ../hg38_hisat2_indexed -1 SRR5273607_1.fastq -2 SRR5273607_2.fastq -S SRR5273607.sam -5 13 -3 30 -p 3
+hisat2 -x ../hg38_hisat2_indexed -1 SRR5273609_1.fastq -2 SRR5273609_2.fastq -S SRR5273609.sam -5 13 -3 30 -p 3
+
+Important: These commands reproduce the ten alignments in the original workflow. Before using the pipeline as a complete analysis, verify the trimming parameters and alignment commands for the remaining samples. Trimming parameters should be based on the sequencing design and quality assessment rather than assigned arbitrarily.
+
+Expected output: SAM alignment files containing mapped and unmapped reads and alignment summary statistics printed by HISAT2.
+
+⸻
+
+4. SAM-to-BAM Conversion, Sorting, and Indexing
+
+SAM files are converted to the more compact BAM format using SAMtools. Each BAM file is then sorted by genomic coordinate and indexed to enable efficient access to mapped reads.
+
+The flagstat command generates summary statistics describing the alignment results.
+
+samtools view -bS SRR5273599.sam -o SRR5273599.bam -@ 3
+samtools sort SRR5273599.bam -o SRR5273599_sorted.bam -@ 3
+samtools index SRR5273599_sorted.bam -@ 3
+samtools flagstat SRR5273599_sorted.bam -@ 3
+samtools view -bS SRR5273600.sam -o SRR5273600.bam -@ 3
+samtools sort SRR5273600.bam -o SRR5273600_sorted.bam -@ 3
+samtools index SRR5273600_sorted.bam -@ 3
+samtools flagstat SRR5273600_sorted.bam -@ 3
+samtools view -bS SRR5273601.sam -o SRR5273601.bam -@ 3
+samtools sort SRR5273601.bam -o SRR5273601_sorted.bam -@ 3
+samtools index SRR5273601_sorted.bam -@ 3
+samtools flagstat SRR5273601_sorted.bam -@ 3
+samtools view -bS SRR5273602.sam -o SRR5273602.bam -@ 3
+samtools sort SRR5273602.bam -o SRR5273602_sorted.bam -@ 3
+samtools index SRR5273602_sorted.bam -@ 3
+samtools flagstat SRR5273602_sorted.bam -@ 3
+samtools view -bS SRR5273603.sam -o SRR5273603.bam -@ 3
+samtools sort SRR5273603.bam -o SRR5273603_sorted.bam -@ 3
+samtools index SRR5273603_sorted.bam -@ 3
+samtools flagstat SRR5273603_sorted.bam -@ 3
+samtools view -bS SRR5273604.sam -o SRR5273604.bam -@ 3
+samtools sort SRR5273604.bam -o SRR5273604_sorted.bam -@ 3
+samtools index SRR5273604_sorted.bam -@ 3
+samtools flagstat SRR5273604_sorted.bam -@ 3
+samtools view -bS SRR5273605.sam -o SRR5273605.bam -@ 3
+samtools sort SRR5273605.bam -o SRR5273605_sorted.bam -@ 3
+samtools index SRR5273605_sorted.bam -@ 3
+samtools flagstat SRR5273605_sorted.bam -@ 3
+samtools view -bS SRR5273606.sam -o SRR5273606.bam -@ 3
+samtools sort SRR5273606.bam -o SRR5273606_sorted.bam -@ 3
+samtools index SRR5273606_sorted.bam -@ 3
+samtools flagstat SRR5273606_sorted.bam -@ 3
+samtools view -bS SRR5273607.sam -o SRR5273607.bam -@ 3
+samtools sort SRR5273607.bam -o SRR5273607_sorted.bam -@ 3
+samtools index SRR5273607_sorted.bam -@ 3
+samtools flagstat SRR5273607_sorted.bam -@ 3
+samtools view -bS SRR5273609.sam -o SRR5273609.bam -@ 3
+samtools sort SRR5273609.bam -o SRR5273609_sorted.bam -@ 3
+samtools index SRR5273609_sorted.bam -@ 3
+samtools flagstat SRR5273609_sorted.bam -@ 3
+
+
+Expected output:
+
+* BAM files: binary alignment files.
+* Sorted BAM files: coordinate-sorted alignments.
+* BAI files: indexes for sorted BAM files.
+* Flagstat output: alignment statistics for quality assessment.
+
+⸻
+
+5. lncRNA Read-Count Generation
+
+BEDTools multiBamCov is used to calculate the number of reads overlapping annotated lncRNA genomic intervals. The LNCipedia annotation file provides the genomic coordinates used to quantify lncRNA-associated reads.
+
+multiBamCov -bams *_sorted.bam -bed lncipedia_5_2_hg38.bed > SRA_hisat2_DLBCL_lncRNA_readcounts.tsv
+
+Output: SRA_hisat2_DLBCL_lncRNA_readcounts.tsv
+
+This file contains read counts for the genomic intervals defined in the LNCipedia BED annotation.
+
+⸻
+
+6. mRNA Read-Count Generation
+
+The same approach is used to quantify reads overlapping protein-coding gene intervals. The NCBI RefSeq BED annotation provides the genomic coordinates used for mRNA-associated read counting.
+
+multiBamCov -bams *_sorted.bam -bed hg38_NCBIRefseq.bed > SRA_hisat2_DLBCL_mRNA_readcounts.tsv
+
+Output: SRA_hisat2_DLBCL_mRNA_readcounts.tsv
+
+This file contains read counts for the genomic intervals defined in the NCBI RefSeq BED annotation.
+
+⸻
+
+7. Downstream Analysis
+
+The generated lncRNA and mRNA read-count matrices can be used for downstream transcriptomic analyses, including:
+
+* Differential expression analysis using DESeq2.
+* Identification of differentially expressed lncRNAs and mRNAs.
+* Investigation of potential lncRNA–mRNA relationships.
+* Functional interpretation of candidate transcripts.
+
+Before differential expression analysis, confirm that the count matrices, sample metadata, annotation identifiers, and sample group assignments are consistent.
+
+Reproducibility Notes
+
+* Use the same reference genome assembly and compatible annotations throughout the analysis.
+* Record software versions and any sample-specific processing parameters.
+* Review FastQC and alignment statistics before downstream analysis.
+* Verify that all samples intended for the analysis have been aligned and included in read counting.
+* Preserve the original sample identifiers to maintain correspondence between count matrices and metadata.
+* Document any exclusions, trimming decisions, or additional preprocessing steps.
+
+⸻
+Note: The workflow presented here illustrates the processing of the SRA tumour dataset only. The SRA normal was subjected to the same processing steps; however, for the TCGA dataset, the BAM files were already available and were downloaded directly, so FASTQ retrieval and alignment were not repeated.
+
+⸻ ⸻ ⸻ ⸻ ⸻ ⸻ ⸻ ⸻ ⸻ ⸻ ⸻ ⸻ ⸻ ⸻ ⸻ ⸻
+
+8. Processing of TCGA BAM Files
+
+The TCGA RNA-seq BAM files were obtained from the Genomic Data Commons (GDC). As the aligned BAM files were already available, FASTQ retrieval and HISAT2 alignment were not repeated. The downloaded BAM files were sorted by genomic coordinates, indexed using SAMtools, and assessed using samtools flagstat to obtain alignment statistics.
+
+The following commands illustrate the processing of the downloaded TCGA BAM files:
+
+# Sort BAM files by genomic coordinates
+samtools sort 5fe963ca-e434-41fa-b5cd-603807d88577_gdc_realn_rehead.bam -o 5fe963ca-e434-41fa-b5cd-603807d88577_gdc_realn_rehead_sorted.bam -@ 3
+# Index sorted BAM files
+samtools index 5fe963ca-e434-41fa-b5cd-603807d88577_gdc_realn_rehead_sorted.bam -@ 3
+# Generate alignment statistics
+samtools flagstat 5fe963ca-e434-41fa-b5cd-603807d88577_gdc_realn_rehead_sorted.bam -@ 3
+
+The same procedure was applied to the other downloaded TCGA BAM files.
+
+⸻
+
+9. Read-Count Generation for TCGA
+
+BEDTools multiBamCov was used to quantify reads overlapping the genomic intervals defined in the lncRNA and mRNA BED annotation files. The same annotation files and counting approach were used for the TCGA dataset to maintain consistency with the SRA dataset.
+
+lncRNA read counts
+
+multiBamCov -bams *_sorted.bam -bed lncipedia_5_2_hg38.bed > TCGA_hisat2_DLBCL_lncRNA_readcounts.tsv
+
+mRNA read counts
+
+multiBamCov -bams *_sorted.bam -bed hg38_NCBIRefseq.bed > TCGA_hisat2_DLBCL_mRNA_readcounts.tsv
+
+Expected outputs:
+
+* TCGA_hisat2_DLBCL_lncRNA_readcounts.tsv
+* TCGA_hisat2_DLBCL_mRNA_readcounts.tsv
+
+These count matrices were used for subsequent differential expression analyses.

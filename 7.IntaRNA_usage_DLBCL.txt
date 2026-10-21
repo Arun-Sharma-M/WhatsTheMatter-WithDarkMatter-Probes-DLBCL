@@ -1,0 +1,38 @@
+IntaRNA: Prediction of lncRNA–mRNA Interactions
+
+IntaRNA was used to predict potential RNA–RNA interactions between selected lncRNAs and their corresponding mRNA targets. The minimum seed base-pairing requirement was set to 4 using --seedBP=4.
+
+1. SPARC and lnc-SPARC-2:3
+
+IntaRNA -mode=M -t SPARC.fa -q Lnc-SPARC-2-3.fa \
+  --outMode=D --seedBP=4 \
+  --out=tMinE:MYPROFILEFILE_SPARC.csv \
+  --out=qMinE:MYPROFILEFILE_lnc_SPARC.csv \
+  --out=pMinE:MYPAIRMINE_SPARC.csv
+
+2. ADAMTS1 and lnc-ADAMTS1-2:1
+
+IntaRNA -mode=M -t ADAMTS1.fa -q lnc-ADAMTS1-2-1.fa \
+  --outMode=D --seedBP=4 \
+  --out=tMinE:MYPROFILEFILE_ADAMTS1.csv \
+  --out=qMinE:MYPROFILEFILE_lnc_ADAMTS1.csv \
+  --out=pMinE:MYPAIRMINE_ADAMTS1.csv
+
+3. FXYD2 and lnc-FXYD2-1:5
+
+IntaRNA -mode=M -t FXYD2.fa -q lnc-FXYD2-1-5.fa \
+  --outMode=D --seedBP=4 \
+  --out=tMinE:MYPROFILEFILE_FXYD2.csv \
+  --out=qMinE:MYPROFILEFILE_lnc_FXYD2.csv \
+  --out=pMinE:MYPAIRMINE_FXYD2.csv
+
+Output files
+
+Each analysis generates three output files:
+
+Output	Description
+tMinE	Target RNA accessibility profile
+qMinE	Query RNA accessibility profile
+pMinE	Pairwise RNA–RNA interaction results
+
+The pairwise interaction results can be examined to identify predicted interaction sites and associated thermodynamic characteristics. These predictions provide computational evidence and require experimental validation to establish biological interactions.
