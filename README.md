@@ -185,7 +185,7 @@ This is a suggested navigation order, not a fully automated pipeline. Some scrip
 
 ## Data and code availability
 
-The scripts are provided to document and support the computational analyses described in this repository. The DLBCL-specific analysis scripts are maintained here, separately from the repository documenting the cholangiocarcinoma (CHOL) study.
+The scripts are provided to document and support the computational analyses described in this repository. The DLBCL-specific analysis scripts are maintained here.
 
 ## License
 
