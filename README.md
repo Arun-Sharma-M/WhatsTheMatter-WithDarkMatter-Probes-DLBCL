@@ -79,7 +79,7 @@ before running them.
                                                ADAMTS1, and `lnc-FXYD2-1:5` and
                                                FXYD2.
 
-  `8.Cohort_Stromal_Adjusted_Associations.R`   Analyses 27 candidate lncRNA--mRNA
+ `8.Cohort_Stromal_Adjusted_Associations.R`   Analyses 27 candidate lncRNA--mRNA
                                                pairs using cohort-specific
                                                Spearman correlations, rank-based
                                                regression adjusted for cohort and
@@ -87,7 +87,8 @@ before running them.
                                                models, integrated result tables,
                                                and faceted scatterplots.
 
-  `8.Spearmann_Correlation_NvsT.R`             Performs a broader lncRNA--mRNA
+
+ `8.Spearmann_Correlation_NvsT.R`             Performs a broader lncRNA--mRNA
                                                correlation workflow, including
                                                groupwise correlations, selected
                                                normal subsets, tumour
@@ -99,6 +100,9 @@ before running them.
                                                multiple-testing correction, and
                                                CSV summaries. The script specifies
                                                9,999 permutations.
+                                               
+ 
+ 
   --------------------------------------------------------------------------------
 
 ## Analysis overview
